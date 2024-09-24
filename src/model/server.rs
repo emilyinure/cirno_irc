@@ -3,10 +3,8 @@ use eframe::egui::{self, TextEdit};
 use futures::StreamExt;
 use irc::client::prelude::*;
 use std::{
-    borrow::BorrowMut,
     collections::HashMap,
     hash::{DefaultHasher, Hash, Hasher},
-    ptr::hash,
     sync::mpsc::{channel, Receiver},
     time::Duration,
 };
@@ -14,6 +12,7 @@ use std::{
 struct Channel {
     name: String,
     messages: Vec<String>,
+    message: String,
 }
 
 impl Channel {
@@ -22,9 +21,17 @@ impl Channel {
             for message in &self.messages {
                 ui.label(message);
             }
-            let mut text = String::new();
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                ui.add(TextEdit::singleline(&mut text).desired_width(ui.available_width()));
+                ui.add(TextEdit::singleline(&mut self.message).desired_width(ui.available_width()));
+                ui.input(|input| {
+                    if input.key_pressed(egui::Key::Enter) {
+                        match sender.send_privmsg(&self.name, &self.message) {
+                            Ok(_) => self.messages.push(self.message.clone()),
+                            Err(_) => {}
+                        };
+                        self.message = String::from("");
+                    }
+                });
             });
         });
     }
@@ -35,6 +42,7 @@ impl Channel {
         Self {
             name: name.clone(),
             messages: Vec::new(),
+            message: String::from(""),
         }
     }
 }
