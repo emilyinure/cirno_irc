@@ -1,0 +1,13 @@
+[package]
+name = "cirno_irc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures = "0.3.30"
+irc = "1.0.0"
+tokio = {version = "1", features = ["full", "rt", "rt-multi-thread", "macros", "net", "time"]}
+failure = "0.1.8"
+eframe = "0.28.1"
+env_logger = "0.11.5"
+lazy_async_promise = "0.5.0"
