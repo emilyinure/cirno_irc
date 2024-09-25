@@ -41,15 +41,13 @@ impl Cirno {
             .collapsible(false)
             .resizable(false)
             .show(ctx, |ui| {
-                ui.vertical(|ui| {
-                    ui.text_edit_singleline(&mut self.server_ip);
-                    if ui.button("Connect").clicked() {
-                        if let Some(server) = Server::new(&self.server_ip, ctx.clone()) {
-                            self.servers.push(server);
-                        }
-                        self.connection_dialogue = false;
+                ui.text_edit_singleline(&mut self.server_ip);
+                if ui.button("Connect").clicked() {
+                    if let Some(server) = Server::new(&self.server_ip, ctx.clone()) {
+                        self.servers.push(server);
                     }
-                });
+                    self.connection_dialogue = false;
+                }
             });
     }
 }
@@ -61,21 +59,28 @@ impl eframe::App for Cirno {
         }
 
         egui::SidePanel::new(egui::panel::Side::Left, Id::new("Servers")).show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                if ui.button("Connect to new server").clicked() {
-                    self.connection_dialogue = true;
-                }
-                for (i, server) in self.servers.iter().enumerate() {
-                    ui.selectable_label(i == self.selected_server, server.ip.clone());
-                }
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                ui.vertical_centered(|ui| {
+                    if ui.button("Connect to new server").clicked() {
+                        self.connection_dialogue = true;
+                    }
+                    for (i, server) in self.servers.iter().enumerate() {
+                        if ui
+                            .selectable_label(i == self.selected_server, server.ip.clone())
+                            .clicked()
+                        {
+                            self.selected_server = i;
+                        };
+                    }
+                });
             });
         });
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                for server in &mut self.servers {
+            for (i, server) in self.servers.iter_mut().enumerate() {
+                if i == self.selected_server {
                     server.update(ctx, ui);
                 }
-            })
+            }
         });
 
         if self.servers.is_empty() {
